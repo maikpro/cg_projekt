@@ -108,7 +108,7 @@ function main(){
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //LICHT
-    pointLight = generatePointLight(0xffffff, 2);
+    pointLight = generatePointLight(0xffffff, 0.9);
     pointLight.position.set(0, 5, 1);
     scene.add(pointLight);
 
@@ -453,6 +453,10 @@ function generateBed(){
                 child.material = brown;
                 child.material.map = generateTexture("wood.jpg");
             }
+
+            //Bett empfängt und wirft Schatten
+            child.receiveShadow = true;
+            child.castShadow = true;
         });
 
         //Bett herunterskalieren
@@ -469,6 +473,10 @@ function generateLamp(){
     objLoader.load("./objects/lamp.obj", function(obj){
         obj.traverse(function(child){
             child.material = generatePhongMaterial(100, 0, 0);
+
+            //Bett empfängt und wirft Schatten
+            child.receiveShadow = true;
+            child.castShadow = true;
         });
 
         obj.scale.set(0.002, 0.002, 0.002);
