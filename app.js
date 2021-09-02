@@ -25,12 +25,16 @@ let scene, camera, renderer; //Scene, Kamera und Renderer für WebGL
 let gui, controls;
 
 //Lichter
-let pointLight, ambientLight;
+let pointLight, ambientLight, lampLight;
 
-//Punktlicht Modus: Licht kann aus bzw. angeschaltet werden über GUI.
-let pointLightModus = {
-    switch: true //Licht an / aus => Am Anfang ist das Licht an!
+//Options: Licht kann aus bzw. angeschaltet werden über GUI.
+let options = {
+    pointLightSwitch: true, //Licht an / aus => Am Anfang ist das Licht an!
+    spotLightHelper: false
 };
+
+//HELPER
+let spotlightHelper;
 
 /*KONSTANTE Werte*/
 const INTERACTION_SPEED = 0.0375; //Geschwindigkeit der Bewegung bei der Keyboard-Interaktion 
@@ -89,10 +93,6 @@ function main(){
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //OBJEKTE LADEN
-    //braunen Tisch aus Objekt-Datei laden:
-    //Quelle: Schreibtisch von farow (zuletzt abgerufen am 29-08-2021): https://free3d.com/3d-model/wood-desk-93009.html
-    generateDesk();
-
     //Stuhl aus Objekt-Datei laden:
     //Quelle: Stuhl von mafradan (zuletzt abgerufen am 29-08-2021): https://free3d.com/de/3d-model/office-chair-swivel-133232.html
     generateChair();
@@ -104,6 +104,10 @@ function main(){
     //Lampe aus Objekt-Datei:
     //Quelle: Lampe von bebeto11 (zuletzt abgerufen am 29-08-2021): https://free3d.com/3d-model/desk-lamb-330686.html
     generateLamp();
+
+    //braunen Tisch aus Objekt-Datei laden:
+    //Quelle: Schreibtisch von farow (zuletzt abgerufen am 29-08-2021): https://free3d.com/3d-model/wood-desk-93009.html
+    generateDesk();
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,17 +119,20 @@ function main(){
     ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
     ambientLight.position.set(0, 5, 0);
     scene.add(ambientLight);
+
+    //Lampenlicht
+    initLampLight();
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //GUI Einstellungen
-    //Punktlicht-------------------------------------------------------------------------------------------------------------------
+    //Punktlicht------------------------------------------------------------------------------------------------------------------------
     //Füge das Punktlicht als Option in die GUI ein:
     const pointLightFolder = gui.addFolder("Punktlicht");
     //Punktlicht Lichtintensität über UI verändern.
     pointLightFolder.add(pointLight, 'intensity', 0, 20).name("Lichtintensität"); 
     //Füge einen Schalter für das Punktlicht in die GUI ein:
-    pointLightFolder.add(pointLightModus, "switch").name("Lichtmodus");
+    pointLightFolder.add(options, "pointLightSwitch").name("Lichtmodus").listen().onChange( onChangedPointLightSwitch );
     //Punktlicht bewegen
     pointLightFolder.add(pointLight.position, 'x', -20, 20); // X-Achse
     pointLightFolder.add(pointLight.position, 'y', -20, 20); // Y-Achse
@@ -133,12 +140,20 @@ function main(){
     pointLightFolder.open(); //Öffnet die GUI am Anfang
     //---------------------------------------------------------------------------------------------------------------------------------
 
-    //AmbientLight-------------------------------------------------------------------------------------------------------------------
+    //AmbientLight---------------------------------------------------------------------------------------------------------------------
     //Dropdown Ordner in der GUI für Ambientlicht
     const ambientLightFolder = gui.addFolder("Ambientlicht");
     //Lichtintensität vom Ambientlicht über GUI verändern:
     ambientLightFolder.add(ambientLight, 'intensity', 0, 20).name("Lichtintensität");
     //---------------------------------------------------------------------------------------------------------------------------------
+    
+    //LampLight------------------------------------------------------------------------------------------------------------------------
+    const lampLightFolder = gui.addFolder("Lampenlicht");
+    lampLightFolder.add(lampLight, 'distance', 0, 10).name("Distanz");
+    lampLightFolder.add(lampLight, 'intensity', 0, 90).name("Intensität");
+    lampLightFolder.add(options, "spotLightHelper").name("Helper").listen().onChange( onChangeSpotLightHelper );
+    //---------------------------------------------------------------------------------------------------------------------------------
+    
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -212,6 +227,24 @@ function onKeyboardInteraction(event) {
 
         default:
             return; // Exit
+    }
+}
+
+/*schaltet Punktlicht an und aus -> Trigger über GUI möglich*/
+function onChangedPointLightSwitch(){
+    //Schalte das Punktlicht an, wenn die Checkbox in der GUI gesetzt ist.
+    if( options.pointLightSwitch ) {
+        pointLight.visible = true;
+    } else{
+        pointLight.visible = false;
+    }
+}
+
+function onChangeSpotLightHelper(){
+    if( options.spotLightHelper ){
+        spotlightHelper.visible = true;
+    } else{
+        spotlightHelper.visible = false;
     }
 }
 
@@ -364,7 +397,7 @@ function generatePointLight(color, intensity){
 function generateDesk(){
     var objLoader = new THREE.OBJLoader();
     objLoader.load("./objects/Desk.obj", function(obj){
-        console.log(obj); //alle Childs in der Console anzusehen vom Objekt.
+        //console.log(obj); //alle Childs in der Console anzusehen vom Objekt.
 
         //Tisch außen Farbe von Schränken
         var deskBaseMaterial = generatePhongMaterial(30, 16, 5);
@@ -468,11 +501,49 @@ function generateBed(){
     });
 }
 
+function initLampLight(){
+    lampLight = new THREE.SpotLight(0xffffff);
+    //lampLight.lookAt(0, 0, 0);
+    lampLight.position.set(4.2, 2.3, 1.8);
+    
+    //TODO: Lichtrichtung der Tischlampe bestimmen
+    lampLight.angle = 90;
+    
+    lampLight.intensity= 3;
+    lampLight.distance = 5; 
+    //Quelle: https://stackoverflow.com/questions/32203806/three-js-spotlight-orientation-direction-issue
+    lampLight.target.position.set(4, 0, 0);
+
+    scene.add(lampLight);
+    //scene.add( lampLight.target );
+
+    //HELPER SPOTLIGHT
+    spotlightHelper = new THREE.SpotLightHelper(lampLight);
+    spotlightHelper.visible = false;
+    scene.add(spotlightHelper);
+}
+
 function generateLamp(){
     var objLoader = new THREE.OBJLoader();
     objLoader.load("./objects/lamp.obj", function(obj){
+
+        console.log( "Lamp: " ,obj );
+
         obj.traverse(function(child){
-            child.material = generatePhongMaterial(100, 0, 0);
+    
+            if( child.name.includes("bombilla") ){
+                //child.material = generatePhongMaterial(255, 244, 128);
+                var color = new THREE.Color();
+                color.setHSL(1, 1, 1);
+
+                child.material = new THREE.MeshPhongMaterial({
+                    color: color
+                });
+            
+            } else{
+                child.material = generatePhongMaterial(100, 0, 0); //rote Farbe
+            }
+            
 
             //Bett empfängt und wirft Schatten
             child.receiveShadow = true;
@@ -482,17 +553,11 @@ function generateLamp(){
         obj.scale.set(0.002, 0.002, 0.002);
         obj.rotation.y = Math.PI;
         obj.position.set(4.2, 1.55, 2);
-
-        //Lampenlicht
-        var lampLight = new THREE.SpotLight(0xffffff);
-        //lampLight.lookAt(0, 0, 0);
-        lampLight.position.set(4.2, 3, 2);
-        scene.add(lampLight);
-
-
         scene.add(obj);
     });
 }
+
+
 
 /*Anwendungsloop hier werden die Methoden wiederholt aufgerufen*/
 function animate(){
@@ -504,12 +569,8 @@ function animate(){
     renderer.render(scene, camera);
     controls.update();
 
-    //Schalte das Punktlicht an, wenn die Checkbox in der GUI gesetzt ist.
-    if( pointLightModus ) {
-        pointLight.visible = true;
-    } else{
-        pointLight.visible = false;
-    }
+    lampLight.target.updateMatrixWorld();
+    spotlightHelper.update();
 
     //Führe animate rekursiv aus und erstelle eine flüssige Animation. Eine JavaScript Methode!
     requestAnimationFrame( animate );
