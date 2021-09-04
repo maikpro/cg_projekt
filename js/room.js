@@ -19,6 +19,46 @@
 */
 
 /*Mit diesen Methoden wird der Raum mit Boden und Wänden generiert*/
+function generateRoom(){
+    var floor = generateFloor(10, 10);
+    floor.rotation.x = Math.PI/2;
+    //holzfarbe für den Boden
+    floor.material = generatePhongMaterial(176, 143, 118);
+    //Lade Holzbodentexture
+    floor.material.map = generateTexture("holzboden.jpg");
+    scene.add(floor);
+
+    //Fensterwand hinten mit zwei Fensterlöchern erstellen:
+    var backWindowWall = generateTwoWindowsWall();
+    backWindowWall.position.z = 5;
+    scene.add(backWindowWall);
+
+    //zwei Fenster in die hintere Wand einfügen:
+    //Quelle: Fenster von printable_models (zuletzt abgerufen am 29-08-2021): https://free3d.com/3d-model/-pane-casement-windowwhite-v1--447400.html
+    generateWindowObject(2, 3, 5, Math.PI/2, 0, 0);
+    generateWindowObject(-2, 3, 5, Math.PI/2, 0, 0);
+
+    //Fensterwand links mit zwei Fensterlöchern
+    var leftWindowWall = generateTwoWindowsWall();
+    leftWindowWall.rotation.y = Math.PI/2;
+    leftWindowWall.position.x = 5;
+    scene.add(leftWindowWall);
+
+    //zwei Fenster in die linke Wand einfügen:
+    //Quelle: Fenster von printable_models (zuletzt abgerufen am 29-08-2021): https://free3d.com/3d-model/-pane-casement-windowwhite-v1--447400.html
+    generateWindowObject(5, 3, 2, Math.PI/2, 0, -Math.PI/2);
+    generateWindowObject(5, 3, -2, Math.PI/2, 0, -Math.PI/2);
+
+    //Fensterwand rechts mit einem Fensterloch:
+    var rightWindowWall = generateOneWindowWall();
+    rightWindowWall.position.x = -5;
+    rightWindowWall.rotation.y = -Math.PI/2;
+    scene.add(rightWindowWall);
+
+    //ein Fenster in die rechte Wand einfügen:
+    generateWindowObject(-5, 3, 0, Math.PI/2, 0, Math.PI/2);
+}
+
 
 /* Erstellt den Boden für den Raum und gibt diesen zurück */
 function generateFloor(width, depth){

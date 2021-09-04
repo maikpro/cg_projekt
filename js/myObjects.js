@@ -21,7 +21,7 @@
 /* Erstellt ein Fensterobjekt aus der .obj-Datei */
 function generateWindowObject(x, y, z, rotX, rotY, rotZ){
     var objLoader = new THREE.OBJLoader();
-    objLoader.load("./objects/Window.obj", async function(obj){
+    objLoader.load("./objects/Window.obj", function(obj){
         //console.log(obj);
 
         //Durchlaufe alle Kindelemente des Objekts
@@ -55,15 +55,11 @@ function generateWindowObject(x, y, z, rotX, rotY, rotZ){
 function generateDesk(){
     var objLoader = new THREE.OBJLoader();
     objLoader.load("./objects/Desk.obj", function(obj){
-        //console.log(obj); //alle Childs in der Console anzusehen vom Objekt.
-
         //Tisch außen Farbe von Schränken
         var deskBaseMaterial = generatePhongMaterial(30, 16, 5);
-
         //Tischplattenfarbe
         var deskTopMaterial = generatePhongMaterial(107, 70, 0);
-
-        //Durchlaufe alle Children und färbe...
+        //Durchlaufe alle Kindelemente und färbe...
         obj.traverse(function(child){
             //Tisch Schränke außen färben
             if( child.name.includes("Desk Base") || child.name.includes("Tiroir") ){
@@ -73,11 +69,10 @@ function generateDesk(){
                 child.material = deskTopMaterial;
                 child.material.map = generateTexture("wood.jpg");
             }
-            /*Tisch empfängt schatten und wirft Schatten*/
+            //einzelne Tischelemente werfen Schatten
             child.castShadow = true;
         });
-        
-        obj.receiveShadow = true;
+        obj.receiveShadow = true; //Der gesamte Tisch empfängt Schatten
         obj.scale.set(0.0075, 0.0075, 0.0075); //Tisch herunterskalieren
         obj.rotation.y = -Math.PI/2; //Drehung um PI/2 auf Y-Achse
         obj.position.x = 4.2; //Position auf der X-Achse
