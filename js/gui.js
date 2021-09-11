@@ -1,6 +1,13 @@
 /*  
-    Computergrafik Projekt von Hafiyyan Teh, Maik Proba
+    Hochschule Osnabrück Sommersemester 2021
+    Modul: Computergrafik Projekt
     Autoren: Maik Proba, Hafiyyan Teh
+
+    genutzten Bibliotheken:
+    dat.gui.min.js - GitHub vom Data Arts Team, dat.GUI, https://github.com/dataarts/dat.gui/blob/master/build/dat.gui.min.js, abgerufen am 06.09.2021
+    OBJLoader.js - GitHub von mrdoob, OBJLoader, https://github.com/mrdoob/three.js/blob/dev/examples/js/loaders/OBJLoader.js, abgerufen am 06.09.2021
+    OrbitControls - GitHub von mrdoob, OrbitControls, https://github.com/mrdoob/three.js/blob/dev/examples/js/controls/OrbitControls.js, abgerufen am 06.09.2021
+    three.js - GitHub von mrdoob, Three.js, https://raw.githubusercontent.com/mrdoob/three.js/dev/build/three.js, abgerufen am 11.09.2021.
 
     Objekt-Quellen:
     Stuhl von mafradan (zuletzt abgerufen am 29-08-2021): https://free3d.com/de/3d-model/office-chair-swivel-133232.html
@@ -34,9 +41,12 @@ let spotlightHelper;
 function initGUI(){
     //GUI = Graphical User Interface
     gui = new dat.GUI(); //GUI initialisieren
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //GUI Einstellungen
+    addPointLightMenu(); //Fügt das Punktlicht-Menu ins GUI ein.
+    addAmbientLightMenu() //Fügt das Ambientlicht-Menu ins GUI ein.
+    addLampLightMenu();
+}
 
+function addPointLightMenu(){
     //Punktlicht------------------------------------------------------------------------------------------------------------------------
     //Füge das Punktlicht als Option in die GUI ein:
     const pointLightFolder = gui.addFolder("Punktlicht");
@@ -49,22 +59,21 @@ function initGUI(){
     pointLightFolder.add(pointLight.position, 'y', -20, 20); // Y-Achse
     pointLightFolder.add(pointLight.position, 'z', -20, 20); // Z-Achse
     pointLightFolder.open(); //Öffnet die GUI am Anfang
-    //---------------------------------------------------------------------------------------------------------------------------------
+}
 
-    //AmbientLight---------------------------------------------------------------------------------------------------------------------
+function addAmbientLightMenu(){
     //Dropdown Ordner in der GUI für Ambientlicht
     const ambientLightFolder = gui.addFolder("Ambientlicht");
     //Lichtintensität vom Ambientlicht über GUI verändern:
     ambientLightFolder.add(ambientLight, 'intensity', 0, 20).name("Lichtintensität");
-    //---------------------------------------------------------------------------------------------------------------------------------
-    
-    //LampLight------------------------------------------------------------------------------------------------------------------------
+    ambientLightFolder.open();
+}
+
+function addLampLightMenu(){
     const lampLightFolder = gui.addFolder("Lampenlicht");
     lampLightFolder.add(lampLight, 'distance', 0, 10).name("Distanz");
     lampLightFolder.add(lampLight, 'intensity', 0, 90).name("Intensität");
     lampLightFolder.add(options, "spotLightSwitch").name("Lichtmodus").listen().onChange( onChangedSpotLightSwitch );
     lampLightFolder.add(options, "spotLightHelper").name("Helper").listen().onChange( onChangeSpotLightHelper );
-    //---------------------------------------------------------------------------------------------------------------------------------
-    
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    lampLightFolder.open();
 }
